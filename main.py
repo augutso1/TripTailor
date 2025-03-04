@@ -1,8 +1,16 @@
 import requests
 import math
+import urllib.parse
+import os
+from dotenv import load_dotenv
 
-# Chave da API do Geoapify
-API_KEY = '52e611f50b144348a7d9715a34565b73'
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API key from environment variables
+API_KEY = os.getenv('GEOAPIFY_API_KEY')
+if not API_KEY:
+    print("WARNING: GEOAPIFY_API_KEY environment variable not set. API calls will fail.")
 
 # Preferências iniciais com pesos (IA ajustável)
 PREFERENCES_WEIGHTS = {
@@ -105,6 +113,32 @@ def generate_itinerary(destino, hotel, duracao, preferencia):
     total_locais = sum(len(day) for day in itinerary)
     print("\nResumo:")
     print(f"- Total de locais visitados: {total_locais}")
+
+# Function to validate API key
+def validate_api_key():
+    if not API_KEY:
+        print("DEBUG: No API key provided")
+        return False
+        
+    try:
+        # Make a simple request to test the API key
+        test_url = f"https://api.geoapify.com/v1/geocode/search?text=Paris&apiKey={API_KEY}"
+        response = requests.get(test_url, timeout=5)
+        
+        if response.status_code == 200:
+            print("DEBUG: API key is valid")
+            return True
+        else:
+            print(f"DEBUG: API key validation failed with status code {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"DEBUG: API key validation error: {str(e)}")
+        return False
+
+# Validate API key on module import
+API_KEY_VALID = validate_api_key()
+if not API_KEY_VALID:
+    print("WARNING: API key validation failed. API calls may not work correctly.")
 
 # Entrada do usuário e execução
 if __name__ == "__main__":
